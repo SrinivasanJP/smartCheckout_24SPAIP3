@@ -1,36 +1,29 @@
 import { useState } from 'react'
+import Navbar from './Components/Navbar';
+import Dashboard from './Components/Dashboard';
+import Purchase from './Components/Purchase';
 
 function App() {
-  const [image, setImage] = useState(null);
+ 
+  const [fragment, setFragment] = useState("dashboard")
 
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    setImage(file);
-  };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const formData = new FormData();
-    formData.append('file', image);
-
-    try {
-      const response = await fetch('http://127.0.0.1:8000/predict', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.error('Error:', error);
+  const RenderFragment = () =>{
+    switch (fragment) {
+      case "purchase":
+        return <Purchase />
+      case "dashboard":
+        return <Dashboard />
+      default:
+        console.log("no fragment")
     }
-  };
+  } 
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
-        <input type="file" onChange={handleImageChange} />
-        <button type="submit">Submit</button>
-      </form>
+   
+      <Navbar setFragment={setFragment}/>
+      <RenderFragment />
     </>
   );
 }
