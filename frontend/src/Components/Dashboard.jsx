@@ -27,6 +27,7 @@ const Dashboard = () => {
 
       useEffect(()=>{
         setAvailableStocks(JSON.parse(localStorage.getItem("availableStocks")) || [])
+        setTransactions(JSON.parse(localStorage.getItem("transactionData"))|| [])
       },[])
   return (
     <div className= 'mt-20'>

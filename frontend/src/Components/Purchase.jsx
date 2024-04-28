@@ -1,8 +1,13 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 const Purchase = () => {
   const [image, setImage] = useState(null);
 
+  const [billContent,setBillContent] = useState([])
+  const [availabelStocks, setAvailableStocks] = useState([])
+  useEffect(()=>{
+    setAvailableStocks(JSON.parse(localStorage.getItem("availableStocks")))
+  },[])
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     setImage(file);
@@ -26,7 +31,20 @@ const Purchase = () => {
       }
     }
   };
-  
+  const handleCheckout = () =>{
+    console.log(availabelStocks,billContent)
+    localStorage.setItem("availableStocks", JSON.stringify(availabelStocks))
+    let existTransaction = JSON.parse(localStorage.getItem("transactionData"))
+    if(existTransaction==null){
+      existTransaction = billContent
+      console.log("run")
+    }else{
+      existTransaction = existTransaction.concat(billContent)
+    }
+    console.log(existTransaction)
+    localStorage.setItem("transactionData",JSON.stringify(existTransaction))
+    setBillContent([])
+  }
   
   
   const handleSubmit = async (event) => {
@@ -40,14 +58,39 @@ const Purchase = () => {
         body: formData
       });
       const data = await response.json();
-      console.log(data);
+      const productIndex = availabelStocks.findIndex(item => {
+        return item.product.charAt(0).toUpperCase()+item.product.slice(1) == data.prediction}
+      );
+      console.log(availabelStocks)
+      if(productIndex==-1 ){
+        alert("Product is not available in inventory")
+      }else if (availabelStocks[productIndex].qty < 0){
+        alert("product is out of stock")
+      }
+      else{
+
+        const bill = [...billContent]
+        const billIndex = bill.findIndex(item=>item.product.charAt(0).toUpperCase()+item.product.slice(1) == data.prediction)
+        if(billIndex == -1){
+          bill.push({product:data.prediction, qty:1,rate:availabelStocks[productIndex].rate,type:availabelStocks[productIndex].type,date:new Date})
+        }else{
+          bill[billIndex] = {...bill[billIndex],qty:bill[billIndex].qty+1}
+          console.log(bill[billIndex])
+        }
+        const newAvailableStocks = availabelStocks
+          newAvailableStocks[productIndex]={...newAvailableStocks[productIndex],qty:newAvailableStocks[productIndex].qty - 1}
+          console.log(bill)
+        setBillContent(bill)
+        setAvailableStocks(newAvailableStocks)
+      }
+      
     } catch (error) {
       console.error('Error:', error);
     }
   };
   return (
-    <div className='w-screen h-screen justify-center items-center flex'>
-         <form onSubmit={handleSubmit} className=' bg-blue-500 p-20 rounded-3xl flex flex-col items-center justify-center'>
+    <div className='w-screen h-screen justify-center items-center flex p-20'>
+         <form onSubmit={handleSubmit} className=' bg-blue-500 p-10 rounded-3xl flex flex-col items-center justify-center mt-24 w-[50%]'>
           <img src={image && URL.createObjectURL(image)} className=" w-80 h-80 bg-slate-100 rounded-xl"  />
           <div className='flex flex-wrap justify-center items-center'>
           <label htmlFor="fileinput" className='bg-white p-10 rounded-2xl inline-block text-2xl font-semibold w-[25rem] text-center m-5'>Click here to upload image</label>
@@ -57,6 +100,33 @@ const Purchase = () => {
           
         <button type="submit" className='bg-white p-10 rounded-2xl text-2xl font-semibold w-[25rem] text-center m-5'>Submit</button>
       </form>
+      <div className='w-[50%] m-5'>
+        <h1 className=' bg-blue-500 text-white text-center font-bold rounded-xl p-3 my-5'>Generated Bill</h1>
+        <table className=' table-auto text-black w-full bg-blue-50'>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+          <tbody>
+            {
+              billContent.map((value,index)=>(
+                <tr className='odd:bg-blue-100 even:bg-blue-50' key={index}>
+                  <td className=' p-4'>{value.product}</td>
+                  <td className=' p-4'>{value.qty}</td>
+                  <td className=' p-4'>{value.rate}</td>
+                  <td className=' p-4'>{value.qty * value.rate}</td>
+                </tr>
+              )) 
+            }
+          </tbody>
+
+        </table>
+        <button className='w-full mt-10 bg-blue-500 p-3 rounded-xl text-white font-bold' onClick={()=>handleCheckout()}>Checkout</button>
+      </div>
     </div>
   )
 }
