@@ -12,23 +12,26 @@ const Dashboard = () => {
         inventoryQty:"213",
         inventoryAmt:"234"
       });
-      const [productData, setProductData] = useState([])
-      const [availableStocks, setAvailableStocks] = useState([
-        {
-            name:"apple",
-            stocks:20
-        },
-        {
-            name:"banana",
-            stocks:10
-        }
-      ])
+      const [availableStocks, setAvailableStocks] = useState([])
       const [previousTransactions, setTransactions] = useState([])
 
       useEffect(()=>{
         setAvailableStocks(JSON.parse(localStorage.getItem("availableStocks")) || [])
         setTransactions(JSON.parse(localStorage.getItem("transactionData"))|| [])
       },[])
+      useEffect(()=>{
+        let inventoryQty = 0
+        let inventoryAmt = 0
+        if(availableStocks.length != 0 ){
+          inventoryQty = availableStocks.reduce((total,value)=>{
+            return total + parseInt(value.qty)
+          },0)
+          inventoryAmt = availableStocks.reduce((total,value)=>{
+            return total + value.qty*value.rate
+          },0)
+        }
+        setAnalyticsData({...JSON.parse(localStorage.getItem("analyticsData")),inventoryQty:inventoryQty,inventoryAmt:inventoryAmt})
+      },[availableStocks])
   return (
     <div className= 'mt-20'>
         <div className='w-screen'>

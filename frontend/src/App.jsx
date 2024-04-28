@@ -11,7 +11,7 @@ function App() {
   const RenderFragment = () =>{
     switch (fragment) {
       case "purchase":
-        return <Purchase />
+        return <Purchase setFragment={setFragment} />
       case "dashboard":
         return <Dashboard />
       default:

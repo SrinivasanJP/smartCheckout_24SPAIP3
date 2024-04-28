@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-const Purchase = () => {
+const Purchase = ({setFragment}) => {
   const [image, setImage] = useState(null);
 
   const [billContent,setBillContent] = useState([])
@@ -43,7 +43,18 @@ const Purchase = () => {
     }
     console.log(existTransaction)
     localStorage.setItem("transactionData",JSON.stringify(existTransaction))
+    let analyticsData = JSON.parse(localStorage.getItem("analyticsData")) || {purchase:0,sale:0,profit:0}
+    analyticsData.purchase = analyticsData.purchase + 1
+    analyticsData.sale += billContent.reduce((total, value) => {
+      return total + (value.qty * value.rate);
+  }, 0);
+  analyticsData.profit += billContent.reduce((total,value)=>{
+    return total + (value.qty * value.rate)/2
+  },0)
+  localStorage.setItem("analyticsData",JSON.stringify(analyticsData))
+
     setBillContent([])
+    setFragment("dashboard")
   }
   
   
